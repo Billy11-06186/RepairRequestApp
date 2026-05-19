@@ -1,12 +1,292 @@
 ﻿<Window x:Class="RepairRequestApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:RepairRequestApp"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        
+        Title="Учёт заявок на ремонт" 
+        WindowState="Maximized"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.Background>
+        <LinearGradientBrush EndPoint="1,1" StartPoint="0,0">
+            <GradientStop Color="#1A2980" Offset="0"/>
+            <GradientStop Color="#26D0CE" Offset="1"/>
+        </LinearGradientBrush>
+    </Window.Background>
+
+    <Grid Margin="10">
+        <Border Background="White" CornerRadius="15" Padding="15">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" 
+                        Background="#1A2980" 
+                        CornerRadius="10" 
+                        Padding="15" 
+                        Margin="0,0,0,20">
+                    <StackPanel>
+                        <TextBlock Text="🔧 Система учёта заявок на ремонт" 
+                                   FontSize="22" 
+                                   FontWeight="Bold" 
+                                   Foreground="White" 
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Управление заявками клиентов" 
+                                   FontSize="13" 
+                                   Foreground="#E0E7FF" 
+                                   HorizontalAlignment="Center"
+                                   Margin="0,5,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="1" 
+                        Background="#F8FAFC" 
+                        CornerRadius="10" 
+                        Padding="15" 
+                        Margin="0,0,0,15"
+                        BorderBrush="#E2E8F0"
+                        BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="Форма добавления/редактирования заявки" 
+                                   FontWeight="Bold" 
+                                   FontSize="14" 
+                                   Foreground="#1A2980"
+                                   Margin="0,0,0,10"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Text="Оборудование:" Grid.Row="0" Grid.Column="0" 
+                                       VerticalAlignment="Center" Margin="5" 
+                                       Foreground="#34495E" FontWeight="Bold"/>
+                            <TextBox x:Name="txtEquipment" Grid.Row="0" Grid.Column="1" 
+                                     Margin="5" Height="40" Padding="10"/>
+
+                            <TextBlock Text="Тип неисправности:" Grid.Row="0" Grid.Column="2" 
+                                       VerticalAlignment="Center" Margin="5"
+                                       Foreground="#34495E" FontWeight="Bold"/>
+                            <TextBox x:Name="txtFaultType" Grid.Row="0" Grid.Column="3" 
+                                     Margin="5" Height="40" Padding="10"/>
+
+                            <TextBlock Text="Статус:" Grid.Row="1" Grid.Column="0" 
+                                       VerticalAlignment="Center" Margin="5"
+                                       Foreground="#34495E" FontWeight="Bold"/>
+                            <ComboBox x:Name="cmbStatus" Grid.Row="1" Grid.Column="1" 
+                                      Margin="5" Height="35" Padding="5">
+                                <ComboBoxItem Content="Новая"/>
+                                <ComboBoxItem Content="В работе"/>
+                                <ComboBoxItem Content="Завершена"/>
+                                <ComboBoxItem Content="Отменена"/>
+                            </ComboBox>
+
+                            <TextBlock Text="Клиент:" Grid.Row="1" Grid.Column="2" 
+                                       VerticalAlignment="Center" Margin="5"
+                                       Foreground="#34495E" FontWeight="Bold"/>
+                            <TextBox x:Name="txtClient" Grid.Row="1" Grid.Column="3" 
+                                     Margin="5" Height="40" Padding="10"/>
+
+                            <TextBlock Text="Описание:" Grid.Row="2" Grid.Column="0" 
+                                       VerticalAlignment="Top" Margin="5"
+                                       Foreground="#34495E" FontWeight="Bold"/>
+                            <TextBox x:Name="txtDescription" Grid.Row="2" Grid.Column="1" 
+                                     Grid.ColumnSpan="3" Margin="5" Height="80" 
+                                     TextWrapping="Wrap" AcceptsReturn="True"
+                                     VerticalScrollBarVisibility="Auto"/>
+                        </Grid>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
+                            <Button x:Name="btnAdd" Content="➕ Добавить" Width="120" Height="38" 
+                                    Margin="5" Background="#27AE60" Foreground="White"
+                                    FontWeight="Bold" Click="BtnAdd_Click"/>
+                            <Button x:Name="btnUpdate" Content="✏️ Обновить" Width="120" Height="38" 
+                                    Margin="5" Background="#3498DB" Foreground="White"
+                                    FontWeight="Bold" Click="BtnUpdate_Click" IsEnabled="False"/>
+                            <Button x:Name="btnCancel" Content="❌ Отмена" Width="120" Height="38" 
+                                    Margin="5" Background="#95A5A6" Foreground="White"
+                                    FontWeight="Bold" Click="BtnCancel_Click"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="2" 
+                        Background="#F8FAFC" 
+                        CornerRadius="10" 
+                        Padding="15" 
+                        Margin="0,0,0,15"
+                        BorderBrush="#E2E8F0"
+                        BorderThickness="1">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="🔍 Поиск:" VerticalAlignment="Center" Margin="5"
+                                   Foreground="#34495E" FontWeight="Bold"/>
+                        <TextBox x:Name="txtSearch" Grid.Column="1" Margin="5" Height="40" 
+                                 Padding="10" TextChanged="TxtSearch_TextChanged"/>
+
+                        <TextBlock Text="Фильтр:" Grid.Column="2" 
+                                   VerticalAlignment="Center" Margin="5"
+                                   Foreground="#34495E" FontWeight="Bold"/>
+                        <ComboBox x:Name="cmbFilterStatus" Grid.Column="3" Width="140" Margin="5" 
+                                  Height="35" SelectionChanged="CmbFilterStatus_SelectionChanged">
+                            <ComboBoxItem Content="Все"/>
+                            <ComboBoxItem Content="Новая"/>
+                            <ComboBoxItem Content="В работе"/>
+                            <ComboBoxItem Content="Завершена"/>
+                            <ComboBoxItem Content="Отменена"/>
+                        </ComboBox>
+
+                        <TextBlock Text="Сортировка:" Grid.Column="4" 
+                                   VerticalAlignment="Center" Margin="5"
+                                   Foreground="#34495E" FontWeight="Bold"/>
+                        <ComboBox x:Name="cmbSort" Grid.Column="5" Width="140" Margin="5" 
+                                  Height="35" SelectionChanged="CmbSort_SelectionChanged">
+                            <ComboBoxItem Content="По ID"/>
+                            <ComboBoxItem Content="По дате (возр.)"/>
+                            <ComboBoxItem Content="По дате (убыв.)"/>
+                            <ComboBoxItem Content="По оборудованию"/>
+                            <ComboBoxItem Content="По клиенту"/>
+                        </ComboBox>
+                    </Grid>
+                </Border>
+
+                <DataGrid x:Name="dgRequests" Grid.Row="3" 
+                          AutoGenerateColumns="False" 
+                          SelectionChanged="DgRequests_SelectionChanged"
+                          CanUserAddRows="False" 
+                          IsReadOnly="True" 
+                          Margin="0,0,0,15"
+                          Background="White"
+                          BorderBrush="#E2E8F0"
+                          BorderThickness="1"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          HorizontalContentAlignment="Stretch"
+                          HeadersVisibility="Column">
+
+                    <DataGrid.Resources>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="Padding" Value="8,5,8,5"/>
+                        </Style>
+                    </DataGrid.Resources>
+
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="ID" 
+                                            Binding="{Binding Id}" 
+                                            Width="60">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                    <Setter Property="Foreground" Value="#1A2980"/>
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="Оборудование" 
+                                            Binding="{Binding Equipment}" 
+                                            Width="180">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextWrapping" Value="Wrap"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="Тип неисправности" 
+                                            Binding="{Binding FaultType}" 
+                                            Width="180">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextWrapping" Value="Wrap"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="Статус" 
+                                            Binding="{Binding Status}" 
+                                            Width="100">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Status}" Value="Новая">
+                                            <Setter Property="Foreground" Value="#E65100"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Status}" Value="В работе">
+                                            <Setter Property="Foreground" Value="#1565C0"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Status}" Value="Завершена">
+                                            <Setter Property="Foreground" Value="#2E7D32"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Status}" Value="Отменена">
+                                            <Setter Property="Foreground" Value="#C62828"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="Клиент" 
+                                            Binding="{Binding Client}" 
+                                            Width="160"/>
+
+                        <DataGridTextColumn Header="Описание" 
+                                            Binding="{Binding Description}" 
+                                            Width="*">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextWrapping" Value="Wrap"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="Дата создания" 
+                                            Binding="{Binding CreatedDate, StringFormat=dd.MM.yyyy HH:mm}" 
+                                            Width="140">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Setter Property="FontSize" Value="11"/>
+                                    <Setter Property="Foreground" Value="#7F8C8D"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Button x:Name="btnDelete" Content="🗑️ Удалить" Width="130" Height="40" 
+                            Margin="5" Background="#E74C3C" Foreground="White"
+                            FontWeight="Bold" Click="BtnDelete_Click"/>
+                    <Button x:Name="btnRefresh" Content="🔄 Обновить" Width="130" Height="40" 
+                            Margin="5" Background="#3498DB" Foreground="White"
+                            FontWeight="Bold" Click="BtnRefresh_Click"/>
+                    <Button x:Name="btnClearFilters" Content="🧹 Сбросить фильтры" Width="140" Height="40" 
+                            Margin="5" Background="#FF8C42" Foreground="White"
+                            FontWeight="Bold" Click="BtnClearFilters_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
     </Grid>
 </Window>
