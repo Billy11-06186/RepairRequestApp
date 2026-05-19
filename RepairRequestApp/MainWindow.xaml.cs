@@ -32,13 +32,29 @@ namespace RepairRequestApp
         {
             try
             {
-                DatabaseHelper.InitializeDatabase();
-                System.Diagnostics.Debug.WriteLine("База данных успешно инициализирована");
+                // Проверяем подключение к SQL Server
+                if (DatabaseHelper.TestConnection())
+                {
+                    System.Diagnostics.Debug.WriteLine("Подключение к SQL Server успешно!");
+                }
+                else
+                {
+                    MessageBox.Show("Не удалось подключиться к базе данных SQL Server.\n\n" +
+                                   "Убедитесь, что:\n" +
+                                   "1. SQL Server запущен\n" +
+                                   "2. База данных RepairRequestsDB создана\n" +
+                                   "3. Строка подключения настроена правильно",
+                                   "Ошибка подключения",
+                                   MessageBoxButton.OK,
+                                   MessageBoxImage.Error);
+                }
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Ошибка инициализации базы данных: {ex.Message}",
-                    "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                                "Ошибка",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Error);
             }
         }
 
@@ -50,12 +66,15 @@ namespace RepairRequestApp
                 allRequests = new ObservableCollection<RepairRequest>(requests);
                 ApplyFilterAndSort();
 
-                System.Diagnostics.Debug.WriteLine($"Загружено {requests.Count} заявок");
+                System.Diagnostics.Debug.WriteLine($"Загружено {requests.Count} заявок из SQL Server");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка загрузки данных: {ex.Message}",
-                    "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Ошибка загрузки данных: {ex.Message}\n\n" +
+                               "Проверьте подключение к SQL Server",
+                                "Ошибка",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Error);
             }
         }
 

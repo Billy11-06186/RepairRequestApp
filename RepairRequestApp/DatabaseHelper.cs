@@ -1,66 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SQLite;
-using System.IO;
+using System.Data.SqlClient;
 
 namespace RepairRequestApp
 {
     public class DatabaseHelper
     {
-        private static string databaseFile = "RepairRequests.db";
-        private static string connectionString = $"Data Source={databaseFile};Version=3;";
-        public static void InitializeDatabase()
-        {
-            if (!File.Exists(databaseFile))
-            {
-                SQLiteConnection.CreateFile(databaseFile);
-                CreateTables();
-                AddTestData();
-            }
-        }
+        private static string connectionString = @"Data Source=MSI\MSSQLSERVER02;Initial Catalog=RepairRequestsDB;Integrated Security=True;TrustServerCertificate=True;";
 
-        private static void CreateTables()
+        public static bool TestConnection()
         {
-            using (var connection = new SQLiteConnection(connectionString))
+            try
             {
-                connection.Open();
-                string createTableQuery = @"
-                    CREATE TABLE IF NOT EXISTS RepairRequests (
-                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        Equipment TEXT NOT NULL,
-                        FaultType TEXT NOT NULL,
-                        Status TEXT NOT NULL,
-                        Client TEXT NOT NULL,
-                        Description TEXT,
-                        CreatedDate TEXT NOT NULL
-                    )";
-
-                using (var command = new SQLiteCommand(createTableQuery, connection))
+                using (var connection = new SqlConnection(connectionString))
                 {
-                    command.ExecuteNonQuery();
+                    connection.Open();
+                    return true;
                 }
             }
-        }
-
-        private static void AddTestData()
-        {
-            var testRequests = new List<RepairRequest>
+            catch (Exception ex)
             {
-                new RepairRequest { Equipment = "Ноутбук Dell", FaultType = "Не включается",
-                    Status = "Новая", Client = "Иванов И.И.", Description = "Ноутбук не реагирует на кнопку включения",
-                    CreatedDate = DateTime.Now.AddDays(-5) },
-                new RepairRequest { Equipment = "Смартфон iPhone", FaultType = "Разбит экран",
-                    Status = "В работе", Client = "Петров П.П.", Description = "Трещины на экране, требуется замена",
-                    CreatedDate = DateTime.Now.AddDays(-3) },
-                new RepairRequest { Equipment = "Холодильник Samsung", FaultType = "Не морозит",
-                    Status = "Завершена", Client = "Сидорова А.А.", Description = "Холодильник работает, но не охлаждает",
-                    CreatedDate = DateTime.Now.AddDays(-7) }
-            };
-
-            foreach (var request in testRequests)
-            {
-                AddRepairRequest(request);
+                System.Diagnostics.Debug.WriteLine($"Ошибка подключения: {ex.Message}");
+                return false;
             }
         }
 
@@ -68,120 +30,14 @@ namespace RepairRequestApp
         {
             var requests = new List<RepairRequest>();
 
-            using (var connection = new SQLiteConnection(connectionString))
+            try
             {
-                connection.Open();
-                string query = "SELECT * FROM RepairRequests ORDER BY Id";
-
-                using (var command = new SQLiteCommand(query, connection))
-                using (var reader = command.ExecuteReader())
+                using (var connection = new SqlConnection(connectionString))
                 {
-                    while (reader.Read())
-                    {
-                        var request = new RepairRequest
-                        {
-                            Id = Convert.ToInt32(reader["Id"]),
-                            Equipment = reader["Equipment"].ToString(),
-                            FaultType = reader["FaultType"].ToString(),
-                            Status = reader["Status"].ToString(),
-                            Client = reader["Client"].ToString(),
-                            Description = reader["Description"].ToString(),
-                            CreatedDate = DateTime.Parse(reader["CreatedDate"].ToString())
-                        };
-                        requests.Add(request);
-                    }
-                }
-            }
+                    connection.Open();
+                    string query = "SELECT * FROM RepairRequests ORDER BY Id";
 
-            return requests;
-        }
-
-        public static void AddRepairRequest(RepairRequest request)
-        {
-            using (var connection = new SQLiteConnection(connectionString))
-            {
-                connection.Open();
-                string query = @"INSERT INTO RepairRequests 
-                                (Equipment, FaultType, Status, Client, Description, CreatedDate) 
-                                VALUES (@Equipment, @FaultType, @Status, @Client, @Description, @CreatedDate);
-                                SELECT last_insert_rowid();";
-
-                using (var command = new SQLiteCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@Equipment", request.Equipment);
-                    command.Parameters.AddWithValue("@FaultType", request.FaultType);
-                    command.Parameters.AddWithValue("@Status", request.Status);
-                    command.Parameters.AddWithValue("@Client", request.Client);
-                    command.Parameters.AddWithValue("@Description", request.Description);
-                    command.Parameters.AddWithValue("@CreatedDate", request.CreatedDate.ToString("yyyy-MM-dd HH:mm:ss"));
-
-                    request.Id = Convert.ToInt32(command.ExecuteScalar());
-                }
-            }
-        }
-
-        public static void UpdateRepairRequest(RepairRequest request)
-        {
-            using (var connection = new SQLiteConnection(connectionString))
-            {
-                connection.Open();
-                string query = @"UPDATE RepairRequests SET 
-                                Equipment = @Equipment, 
-                                FaultType = @FaultType, 
-                                Status = @Status, 
-                                Client = @Client, 
-                                Description = @Description,
-                                CreatedDate = @CreatedDate
-                                WHERE Id = @Id";
-
-                using (var command = new SQLiteCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@Id", request.Id);
-                    command.Parameters.AddWithValue("@Equipment", request.Equipment);
-                    command.Parameters.AddWithValue("@FaultType", request.FaultType);
-                    command.Parameters.AddWithValue("@Status", request.Status);
-                    command.Parameters.AddWithValue("@Client", request.Client);
-                    command.Parameters.AddWithValue("@Description", request.Description);
-                    command.Parameters.AddWithValue("@CreatedDate", request.CreatedDate.ToString("yyyy-MM-dd HH:mm:ss"));
-
-                    command.ExecuteNonQuery();
-                }
-            }
-        }
-
-        public static void DeleteRepairRequest(int id)
-        {
-            using (var connection = new SQLiteConnection(connectionString))
-            {
-                connection.Open();
-                string query = "DELETE FROM RepairRequests WHERE Id = @Id";
-
-                using (var command = new SQLiteCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@Id", id);
-                    command.ExecuteNonQuery();
-                }
-            }
-        }
-
-        public static List<RepairRequest> SearchRepairRequests(string searchText)
-        {
-            var requests = new List<RepairRequest>();
-
-            using (var connection = new SQLiteConnection(connectionString))
-            {
-                connection.Open();
-                string query = @"SELECT * FROM RepairRequests WHERE 
-                                Equipment LIKE @Search OR 
-                                FaultType LIKE @Search OR 
-                                Client LIKE @Search OR 
-                                Description LIKE @Search
-                                ORDER BY Id";
-
-                using (var command = new SQLiteCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@Search", $"%{searchText}%");
-
+                    using (var command = new SqlCommand(query, connection))
                     using (var reader = command.ExecuteReader())
                     {
                         while (reader.Read())
@@ -194,12 +50,158 @@ namespace RepairRequestApp
                                 Status = reader["Status"].ToString(),
                                 Client = reader["Client"].ToString(),
                                 Description = reader["Description"].ToString(),
-                                CreatedDate = DateTime.Parse(reader["CreatedDate"].ToString())
+                                CreatedDate = Convert.ToDateTime(reader["CreatedDate"])
                             };
                             requests.Add(request);
                         }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка GetAllRepairRequests: {ex.Message}");
+                throw;
+            }
+
+            return requests;
+        }
+
+        public static void AddRepairRequest(RepairRequest request)
+        {
+            try
+            {
+                using (var connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    string query = @"INSERT INTO RepairRequests 
+                                    (Equipment, FaultType, Status, Client, Description, CreatedDate) 
+                                    VALUES (@Equipment, @FaultType, @Status, @Client, @Description, @CreatedDate);
+                                    SELECT SCOPE_IDENTITY();";
+
+                    using (var command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@Equipment", request.Equipment);
+                        command.Parameters.AddWithValue("@FaultType", request.FaultType);
+                        command.Parameters.AddWithValue("@Status", request.Status);
+                        command.Parameters.AddWithValue("@Client", request.Client);
+                        command.Parameters.AddWithValue("@Description", string.IsNullOrEmpty(request.Description) ? "" : request.Description);
+                        command.Parameters.AddWithValue("@CreatedDate", request.CreatedDate);
+
+                        request.Id = Convert.ToInt32(command.ExecuteScalar());
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка AddRepairRequest: {ex.Message}");
+                throw;
+            }
+        }
+
+        public static void UpdateRepairRequest(RepairRequest request)
+        {
+            try
+            {
+                using (var connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    string query = @"UPDATE RepairRequests SET 
+                                    Equipment = @Equipment, 
+                                    FaultType = @FaultType, 
+                                    Status = @Status, 
+                                    Client = @Client, 
+                                    Description = @Description,
+                                    CreatedDate = @CreatedDate
+                                    WHERE Id = @Id";
+
+                    using (var command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@Id", request.Id);
+                        command.Parameters.AddWithValue("@Equipment", request.Equipment);
+                        command.Parameters.AddWithValue("@FaultType", request.FaultType);
+                        command.Parameters.AddWithValue("@Status", request.Status);
+                        command.Parameters.AddWithValue("@Client", request.Client);
+                        command.Parameters.AddWithValue("@Description", string.IsNullOrEmpty(request.Description) ? "" : request.Description);
+                        command.Parameters.AddWithValue("@CreatedDate", request.CreatedDate);
+
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка UpdateRepairRequest: {ex.Message}");
+                throw;
+            }
+        }
+
+        public static void DeleteRepairRequest(int id)
+        {
+            try
+            {
+                using (var connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    string query = "DELETE FROM RepairRequests WHERE Id = @Id";
+
+                    using (var command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@Id", id);
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка DeleteRepairRequest: {ex.Message}");
+                throw;
+            }
+        }
+
+        public static List<RepairRequest> SearchRepairRequests(string searchText)
+        {
+            var requests = new List<RepairRequest>();
+
+            try
+            {
+                using (var connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    string query = @"SELECT * FROM RepairRequests WHERE 
+                                    Equipment LIKE @Search OR 
+                                    FaultType LIKE @Search OR 
+                                    Client LIKE @Search OR 
+                                    Description LIKE @Search
+                                    ORDER BY Id";
+
+                    using (var command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@Search", $"%{searchText}%");
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                var request = new RepairRequest
+                                {
+                                    Id = Convert.ToInt32(reader["Id"]),
+                                    Equipment = reader["Equipment"].ToString(),
+                                    FaultType = reader["FaultType"].ToString(),
+                                    Status = reader["Status"].ToString(),
+                                    Client = reader["Client"].ToString(),
+                                    Description = reader["Description"].ToString(),
+                                    CreatedDate = Convert.ToDateTime(reader["CreatedDate"])
+                                };
+                                requests.Add(request);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка SearchRepairRequests: {ex.Message}");
+                throw;
             }
 
             return requests;
@@ -209,33 +211,41 @@ namespace RepairRequestApp
         {
             var requests = new List<RepairRequest>();
 
-            using (var connection = new SQLiteConnection(connectionString))
+            try
             {
-                connection.Open();
-                string query = "SELECT * FROM RepairRequests WHERE Status = @Status ORDER BY Id";
-
-                using (var command = new SQLiteCommand(query, connection))
+                using (var connection = new SqlConnection(connectionString))
                 {
-                    command.Parameters.AddWithValue("@Status", status);
+                    connection.Open();
+                    string query = "SELECT * FROM RepairRequests WHERE Status = @Status ORDER BY Id";
 
-                    using (var reader = command.ExecuteReader())
+                    using (var command = new SqlCommand(query, connection))
                     {
-                        while (reader.Read())
+                        command.Parameters.AddWithValue("@Status", status);
+
+                        using (var reader = command.ExecuteReader())
                         {
-                            var request = new RepairRequest
+                            while (reader.Read())
                             {
-                                Id = Convert.ToInt32(reader["Id"]),
-                                Equipment = reader["Equipment"].ToString(),
-                                FaultType = reader["FaultType"].ToString(),
-                                Status = reader["Status"].ToString(),
-                                Client = reader["Client"].ToString(),
-                                Description = reader["Description"].ToString(),
-                                CreatedDate = DateTime.Parse(reader["CreatedDate"].ToString())
-                            };
-                            requests.Add(request);
+                                var request = new RepairRequest
+                                {
+                                    Id = Convert.ToInt32(reader["Id"]),
+                                    Equipment = reader["Equipment"].ToString(),
+                                    FaultType = reader["FaultType"].ToString(),
+                                    Status = reader["Status"].ToString(),
+                                    Client = reader["Client"].ToString(),
+                                    Description = reader["Description"].ToString(),
+                                    CreatedDate = Convert.ToDateTime(reader["CreatedDate"])
+                                };
+                                requests.Add(request);
+                            }
                         }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка FilterByStatus: {ex.Message}");
+                throw;
             }
 
             return requests;
@@ -263,34 +273,90 @@ namespace RepairRequestApp
                 case "По клиенту":
                     orderBy = "Client";
                     break;
+                default:
+                    orderBy = "Id";
+                    break;
             }
 
-            using (var connection = new SQLiteConnection(connectionString))
+            try
             {
-                connection.Open();
-                string query = $"SELECT * FROM RepairRequests ORDER BY {orderBy}";
-
-                using (var command = new SQLiteCommand(query, connection))
-                using (var reader = command.ExecuteReader())
+                using (var connection = new SqlConnection(connectionString))
                 {
-                    while (reader.Read())
+                    connection.Open();
+                    string query = $"SELECT * FROM RepairRequests ORDER BY {orderBy}";
+
+                    using (var command = new SqlCommand(query, connection))
+                    using (var reader = command.ExecuteReader())
                     {
-                        var request = new RepairRequest
+                        while (reader.Read())
                         {
-                            Id = Convert.ToInt32(reader["Id"]),
-                            Equipment = reader["Equipment"].ToString(),
-                            FaultType = reader["FaultType"].ToString(),
-                            Status = reader["Status"].ToString(),
-                            Client = reader["Client"].ToString(),
-                            Description = reader["Description"].ToString(),
-                            CreatedDate = DateTime.Parse(reader["CreatedDate"].ToString())
-                        };
-                        requests.Add(request);
+                            var request = new RepairRequest
+                            {
+                                Id = Convert.ToInt32(reader["Id"]),
+                                Equipment = reader["Equipment"].ToString(),
+                                FaultType = reader["FaultType"].ToString(),
+                                Status = reader["Status"].ToString(),
+                                Client = reader["Client"].ToString(),
+                                Description = reader["Description"].ToString(),
+                                CreatedDate = Convert.ToDateTime(reader["CreatedDate"])
+                            };
+                            requests.Add(request);
+                        }
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка GetSortedRequests: {ex.Message}");
+                throw;
+            }
 
             return requests;
+        }
+
+        public static int GetRequestsCount()
+        {
+            try
+            {
+                using (var connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    string query = "SELECT COUNT(*) FROM RepairRequests";
+
+                    using (var command = new SqlCommand(query, connection))
+                    {
+                        return Convert.ToInt32(command.ExecuteScalar());
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка GetRequestsCount: {ex.Message}");
+                return 0;
+            }
+        }
+
+        public static int GetRequestsCountByStatus(string status)
+        {
+            try
+            {
+                using (var connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    string query = "SELECT COUNT(*) FROM RepairRequests WHERE Status = @Status";
+
+                    using (var command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@Status", status);
+                        return Convert.ToInt32(command.ExecuteScalar());
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка GetRequestsCountByStatus: {ex.Message}");
+                return 0;
+            }
         }
     }
 }
