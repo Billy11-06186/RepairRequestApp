@@ -71,17 +71,21 @@ namespace RepairRequestApp
                 loginAttempts++;
                 int remainingAttempts = MAX_ATTEMPTS - loginAttempts;
 
+                MessageBox.Show("Вы неправильно ввели логин или пароль!",
+                                "Ошибка авторизации",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Warning);
+
                 if (loginAttempts >= MAX_ATTEMPTS)
                 {
                     MessageBox.Show("Превышено количество попыток входа. Приложение будет закрыто.",
-                                    "Ошибка",
+                                    "Доступ заблокирован",
                                     MessageBoxButton.OK,
                                     MessageBoxImage.Error);
                     Application.Current.Shutdown();
                 }
                 else
                 {
-                    ShowError($"Неверный логин или пароль. Осталось попыток: {remainingAttempts}");
                     txtPassword.Clear();
                     txtPassword.Focus();
                 }
